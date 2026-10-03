@@ -1,7 +1,11 @@
-venv
-data
-solvers
-training_data
-*.txt
+venv/*
+
+data/*
+!data/feature_names.txt
+
+solvers/*
+
+training_data/*
+!training_data/pairwise_forests.pkl
 
 __pycache__/
