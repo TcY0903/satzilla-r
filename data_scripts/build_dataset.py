@@ -16,6 +16,8 @@ TRAINING_DIR = PROJECT_ROOT / "training_data"
 
 SOLVERS = ["AE_kissat", "cadical", "dynamic", "isasat", "yalsat"]
 
+BALANCE_DATASET = True
+
 TRAIN_RATIO = 0.6
 VAL_RATIO = 0.2
 TEST_RATIO = 0.2
@@ -136,6 +138,25 @@ def main():
     merged = filter_successful(merged)
     merged = merged.sort_values(by="file").reset_index(drop=True)
     print_distribution(merged, "Full dataset distribution")
+
+    # Balance dataset if required
+    if BALANCE_DATASET:
+        value_counts = merged["best_solver"].value_counts()
+        min_count = value_counts.min()
+        print(f"\nDownsampling all classes to {min_count} samples each...")
+        
+        balanced_dfs = []
+        for solver in value_counts.index:
+            subset = merged[merged["best_solver"] == solver]
+            sampled = subset.sample(n=min_count, random_state=RANDOM_SEED)
+            balanced_dfs.append(sampled)
+        
+        merged = pd.concat(balanced_dfs, ignore_index=True)
+        merged = merged.reset_index(drop=True)
+        merged = merged.sort_values(by="file").reset_index(drop=True)
+        
+        print(f"Columns after balancing: {list(merged.columns)[:5]}...")
+        print_distribution(merged, "Balanced dataset distribution")
     
     # split train/validation/test
     train_df, temp_df = train_test_split(
