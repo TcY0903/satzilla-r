@@ -1,0 +1,6 @@
+python-sat
+satzilla
+
+numpy
+pandas
+scikit-learn
