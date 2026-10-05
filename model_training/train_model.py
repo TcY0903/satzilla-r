@@ -22,9 +22,9 @@ SOLVERS = ["AE_kissat", "cadical", "dynamic", "isasat", "yalsat"]
 RANDOM_SEED = 42
 
 PARAM_GRID = [
-    {"n_trees": 55, "max_depth": 8, "min_samples_split": 10},
-    {"n_trees": 65, "max_depth": 10, "min_samples_split": 10},
-    {"n_trees": 75, "max_depth": 12, "min_samples_split": 8},
+    {"n_trees": 15, "max_depth": 12, "min_samples_split": 5},
+    {"n_trees": 25, "max_depth": 10, "min_samples_split": 8},
+    {"n_trees": 35, "max_depth": 8, "min_samples_split": 10},
 ]
 
 
@@ -121,15 +121,22 @@ def main():
                     and not c.endswith("_time") and not c.endswith("_status")]
     
     # train random forests, evaluate on validation set to find best hyperparameters
-    best_params, best_val_acc = None, -1
-    for params in PARAM_GRID:
-        print(f"\nParams: {params}")
-        forests = train_all_pairs(params)
-        val_acc = evaluate(forests, val_df, feature_cols, "Validation")
-        if val_acc > best_val_acc:
-            best_val_acc = val_acc
-            best_params = params
-    print(f"\nBest params: {best_params} (val acc: {best_val_acc:.4f})")
+    if len(PARAM_GRID) == 1:
+        # only one hyperparameter set, no need to search
+        best_params = PARAM_GRID[0]
+        best_val_acc = None
+        print(f"\nOnly one parameter set found: {best_params}")
+        print("Skipping validation search.")
+    else:
+        best_params, best_val_acc = None, -1
+        for params in PARAM_GRID:
+            print(f"\nParams: {params}")
+            forests = train_all_pairs(params)
+            val_acc = evaluate(forests, val_df, feature_cols, "Validation")
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                best_params = params
+        print(f"\nBest params: {best_params} (val acc: {best_val_acc:.4f})")
     
     # retrain on train + validation set using best hyperparameters
     print("\nRetraining on train + validation...")
